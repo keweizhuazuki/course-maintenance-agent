@@ -2,6 +2,7 @@ import asyncio
 import io
 import json
 import os
+import struct
 import subprocess
 import sys
 import tempfile
@@ -177,6 +178,36 @@ class WorkflowTests(unittest.TestCase):
         s=self.service.add_drafts(s['id'],{'expected_revision':s['revision'],'source_hash':s['source_hash'],'proposals':[{'target_id':id,'expected_digest':t['digest'],'replacement':replacement,'rationale':'Human-reviewed support policy','citations':[{'start_line':2,'end_line':2,'quote':'Support is available for 12 hours.'}]}]})
         self.service.decide(s['id'],s['proposals'][0]['id'],'approved');self.service.apply(s['id'])
         self.assertEqual(targets(self.service.get(s['id'])['current'])[id]['value']['text'],replacement['text'])
+
+    def test_zip_entry_limit_is_preflighted_including_underreported_counts(self):
+        def archive_with_entries(target_count):
+            output=io.BytesIO()
+            with zipfile.ZipFile(io.BytesIO(self.archive)) as original:
+                original_entries=original.infolist()
+                self.assertLess(len(original_entries),target_count)
+                with zipfile.ZipFile(output,'w') as result:
+                    for entry in original_entries:
+                        result.writestr(entry,original.read(entry.filename))
+                    for index in range(target_count-len(original_entries)):
+                        result.writestr(f'assets/limit-{index}/',b'')
+            return bytearray(output.getvalue())
+
+        at_limit=archive_with_entries(100)
+        self.assertEqual(unpack(bytes(at_limit)),unpack(self.archive))
+
+        over_limit=archive_with_entries(101)
+        with patch('app.package.zipfile.ZipFile',side_effect=AssertionError('ZipFile must not parse an oversized directory')):
+            with self.assertRaisesRegex(ValueError,'100'):
+                unpack(bytes(over_limit))
+
+        with zipfile.ZipFile(io.BytesIO(over_limit)) as archive:
+            self.assertEqual(len(archive.infolist()),101)
+        eocd=over_limit.rfind(b'PK\x05\x06')
+        self.assertGreaterEqual(eocd,0)
+        struct.pack_into('<HH',over_limit,eocd+8,1,1)
+        with patch('app.package.zipfile.ZipFile',side_effect=AssertionError('ZipFile must not trust an understated entry count')):
+            with self.assertRaisesRegex(ValueError,'100'):
+                unpack(bytes(over_limit))
 
     def test_bad_inputs_never_mutate_existing_task(self):
         before=self.service.get(self.id)['current']

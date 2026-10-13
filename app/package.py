@@ -10,6 +10,51 @@ from PIL import Image
 from .models import Course
 
 MAX_ARCHIVE = 20 * 1024 * 1024
+MAX_ENTRIES = 100
+CENTRAL_DIRECTORY_SIGNATURE = b"PK\x01\x02"
+CENTRAL_DIRECTORY_HEADER_SIZE = 46
+CENTRAL_DIRECTORY_DIGITAL_SIGNATURE = b"PK\x05\x05"
+
+
+def _preflight_entry_count(data):
+    # zipfile's EOCD reader handles ZIP64 and comments without building its eager ZipInfo list.
+    endrec = zipfile._EndRecData(io.BytesIO(data))
+    if endrec is None:
+        return
+    declared_count = endrec[zipfile._ECD_ENTRIES_TOTAL]
+    if declared_count > MAX_ENTRIES:
+        raise ValueError(f"Archive exceeds {MAX_ENTRIES} file entry limit")
+
+    directory_end = endrec[zipfile._ECD_LOCATION]
+    directory_start = directory_end - endrec[zipfile._ECD_SIZE]
+    if directory_start < 0 or directory_end > len(data):
+        raise ValueError("Invalid ZIP central directory")
+
+    offset = directory_start
+    counted = 0
+    while offset < directory_end:
+        signature = data[offset:offset + 4]
+        if signature == CENTRAL_DIRECTORY_DIGITAL_SIGNATURE:
+            if offset + 6 > directory_end:
+                raise ValueError("Invalid ZIP central directory")
+            signature_size = struct.unpack_from("<H", data, offset + 4)[0]
+            if offset + 6 + signature_size != directory_end:
+                raise ValueError("Invalid ZIP central directory")
+            offset = directory_end
+            break
+        if signature != CENTRAL_DIRECTORY_SIGNATURE or offset + CENTRAL_DIRECTORY_HEADER_SIZE > directory_end:
+            raise ValueError("Invalid ZIP central directory")
+
+        name_size, extra_size, comment_size = struct.unpack_from("<HHH", data, offset + 28)
+        offset += CENTRAL_DIRECTORY_HEADER_SIZE + name_size + extra_size + comment_size
+        if offset > directory_end:
+            raise ValueError("Invalid ZIP central directory")
+        counted += 1
+        if counted > MAX_ENTRIES:
+            raise ValueError(f"Archive exceeds {MAX_ENTRIES} file entry limit")
+
+    if counted != declared_count:
+        raise ValueError("ZIP entry count does not match its central directory")
 
 
 def read_markdown(data):
@@ -40,9 +85,10 @@ def validate_image(name, blob):
 def unpack(data):
     if len(data) > MAX_ARCHIVE:
         raise ValueError("Course ZIP exceeds 20 MB")
+    _preflight_entry_count(data)
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         entries = archive.infolist()
-        if len(entries) > 100 or sum(e.file_size for e in entries) > MAX_ARCHIVE:
+        if len(entries) > MAX_ENTRIES or sum(e.file_size for e in entries) > MAX_ARCHIVE:
             raise ValueError("Archive exceeds file or uncompressed size limit")
         files = {}
         for entry in entries:

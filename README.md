@@ -48,6 +48,8 @@ Open `http://127.0.0.1:8765`. The interface is Simplified Chinese. Linux/Chromiu
 3. Paste/import the revised reference and create the task. Add your own changes with **人工添加修改**, select source lines, then review and approve them. There is no offline automatic impact analysis.
 4. Apply approved items, resolve/reject remaining suggestions, and download the course/handout package. Reopen that package for the next maintenance cycle.
 
+**Package limits:** the ZIP and its total uncompressed contents are each limited to 20 MiB; packages may contain at most 100 ZIP entries including directories. Each image is limited to 4 MiB and 16 megapixels, and source Markdown to 100 KB. The entry count is checked before ZIP entries are opened.
+
 PPTX, PDF, arbitrary HTML, videos, remote media, SCORM/LMS integration and secure exams are not supported. Markdown is a deliberately limited text/heading/link format; it is not a full renderer. See [the exact contract](CONTRACT.md).
 
 ## Demonstration and reviewable artifacts

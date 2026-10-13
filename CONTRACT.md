@@ -7,7 +7,7 @@ This is a local course maintenance application. It does not create new training 
 - A `.course.zip` containing `course.json`, `source.md` (the previous approved reference), and optional PNG/JPEG/WebP files beneath `assets/`.
 - A new UTF-8 Markdown reference, up to 100 KB. Markdown is displayed as text with stable line numbers and a SHA-256 version.
 - Course schema version `1`: course ID, title, language, chapters with globally unique IDs, text blocks, and single-answer multiple-choice questions. Each chapter contains at least one text block. Images use package-relative asset paths. Arbitrary HTML, executable files, remote assets, PPTX and PDF are unsupported.
-- Up to 30 chapters, 300 editable items, 20 MB uncompressed package data, 100 files and 4 MB per image. Archive traversal, links, duplicate paths and oversized entries are rejected before extraction.
+- Up to 30 chapters, 300 editable items, a 20 MiB ZIP and 20 MiB aggregate uncompressed package data, 100 ZIP entries (including directories), and 4 MiB / 16 megapixels per image. Source Markdown is limited to 100 KB. The ZIP entry count is checked from the central directory before ZIP entries are opened. Archive traversal, links, duplicate paths and oversized entries are rejected before extraction.
 
 ## Proposal contract
 
