@@ -89,8 +89,8 @@ python scripts/recovery_proof.py
 python scripts/browser_check.py
 ```
 
-浏览器脚本另需 Playwright 与 Chromium，依赖在 `requirements-dev.txt`。默认使用 `/usr/bin/chromium`，其他平台用 `COURSE_CHROMIUM` 指定已安装的浏览器路径。全部检查只用合成数据、独立临时任务目录与回环 HTTP。[截图](docs/screenshots/)来自实际运行界面和实际导出物。
+浏览器脚本另需 Playwright 与 Chromium，依赖在 `requirements-dev.txt`。优先使用 `/usr/bin/chromium`；若不存在，则使用 Playwright 安装的 Chromium。可用 `COURSE_CHROMIUM` 指定浏览器路径。GitHub Actions 会在推送到 `main` 和拉取请求时运行这些检查；只用合成数据，无需密钥。全部检查使用独立临时任务目录与回环 HTTP。[截图](docs/screenshots/)来自实际运行界面和实际导出物。
 
 ## 下一步与未验证局限
 
-在获准的真实模型上验证陌生课程的影响识别、引用语义、冲突发现与来源指令攻击；用真实培训者的重复维护任务与现有工具做对照。证明这些能力后再改进选择性审批失效。富文档导入、LMS 分发、成绩服务、多用户认证和部署均不在本版范围。未调查用户旧仓库，未创建远端仓库或部署。
+在获准的真实模型上验证陌生课程的影响识别、引用语义、冲突发现与来源指令攻击；用真实培训者的重复维护任务与现有工具做对照。证明这些能力后再改进选择性审批失效。富文档导入、LMS 分发、成绩服务、多用户认证和部署均不在本版范围。未调查用户的旧仓库。

@@ -89,8 +89,8 @@ python scripts/recovery_proof.py
 python scripts/browser_check.py
 ```
 
-The browser check additionally requires Playwright and Chromium (`requirements-dev.txt`). It uses `/usr/bin/chromium` by default; set `COURSE_CHROMIUM` to an explicitly installed browser path on other systems. Browser checks use only synthetic data, independent temporary task stores and loopback HTTP. [Screenshots](docs/screenshots/) are actual captures of this application and exported artifacts.
+The browser check additionally requires Playwright and Chromium (`requirements-dev.txt`). It uses `/usr/bin/chromium` when present, otherwise Playwright's installed Chromium; set `COURSE_CHROMIUM` to choose a specific browser. GitHub Actions runs these checks on pushes to `main` and pull requests; the workflow uses synthetic data and needs no secrets. Browser checks use independent temporary task stores and loopback HTTP. [Screenshots](docs/screenshots/) are actual captures of this application and exported artifacts.
 
 ## Next / not yet proven
 
-Run authorized real AI influence detection on unseen courses; evaluate citation entailment, source conflict detection and source-instruction attacks. Compare an actual trainer's recurring maintenance task against existing tools. Improve selective approval invalidation only after those semantics can be checked. Rich document import, LMS delivery, grading services, multi-user authentication and deployment are outside this first version. No user repository was inspected and no remote repository or deployment was created.
+Run authorized real AI influence detection on unseen courses; evaluate citation entailment, source conflict detection and source-instruction attacks. Compare an actual trainer's recurring maintenance task against existing tools. Improve selective approval invalidation only after those semantics can be checked. Rich document import, LMS delivery, grading services, multi-user authentication and deployment are outside this first version. No old user repository was inspected.

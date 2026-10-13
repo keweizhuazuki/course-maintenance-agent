@@ -24,6 +24,6 @@ The managed browser denied `file://`; the policy was not bypassed. Independent l
 
 ## Boundaries kept
 
-Only the new standalone directory was used. No old user repository, GitHub account or remote repository was accessed. No remote repository, deployment, paid call or external message/write was created. No real learner data was used. The task creation receipt supplied by the parent remains `gpt-6-astra / xhigh / fast`, admitted as `started`; there was no observed model mismatch or deliberate model change.
+Only the approved standalone product directory was used; no old user repository was inspected. No deployment, paid call or external message was created during product implementation. Repository publication is a separately authorized delivery step. No real learner data was used. No model service was called for this product.
 
-Local commits use author/committer `zhukewei` and the email verified from existing global Git configuration (`kewei.zhu@outlook.com`). No remote or final product repository name is selected here; that remains with the parent after review.
+The initial local commit uses author and committer `zhukewei <kewei.zhu@outlook.com>`. The selected delivery target is [github.com/keweizhuazuki/course-maintenance-agent](https://github.com/keweizhuazuki/course-maintenance-agent); its remote state and CI result are verified during publication.

@@ -24,6 +24,16 @@ def free_port():
         s.bind(('127.0.0.1',0));return s.getsockname()[1]
 
 
+def chromium_options():
+    options={'headless':True,'args':['--no-sandbox','--disable-dev-shm-usage','--disable-background-networking']}
+    executable=os.environ.get('COURSE_CHROMIUM')
+    if not executable and Path('/usr/bin/chromium').is_file():
+        executable='/usr/bin/chromium'
+    if executable:
+        options['executable_path']=executable
+    return options
+
+
 def wait_server(base,process):
     for _ in range(80):
         if process.poll() is not None: raise RuntimeError('Server stopped before readiness')
@@ -43,7 +53,7 @@ def run():
         try:
             wait_server(base,process)
             with sync_playwright() as pw:
-                browser=pw.chromium.launch(executable_path=os.environ.get('COURSE_CHROMIUM','/usr/bin/chromium'),headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-background-networking'])
+                browser=pw.chromium.launch(**chromium_options())
                 context=browser.new_context(viewport={'width':1440,'height':1080},device_scale_factor=1)
                 page=context.new_page();errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
@@ -103,7 +113,7 @@ def run():
                     try:
                         if httpx.get(learner_base+'/course.html',trust_env=False,timeout=.3).status_code==200:break
                     except httpx.HTTPError:time.sleep(.1)
-                learner=pw.chromium.launch_persistent_context(str(work/'learner-profile'),executable_path=os.environ.get('COURSE_CHROMIUM','/usr/bin/chromium'),headless=True,viewport={'width':1280,'height':960},args=['--no-sandbox','--disable-dev-shm-usage','--disable-background-networking'])
+                learner=pw.chromium.launch_persistent_context(str(work/'learner-profile'),viewport={'width':1280,'height':960},**chromium_options())
                 lp=learner.new_page();requests=[];lp.on('request',lambda req:requests.append(req.url));lp.on('pageerror',lambda e:errors.append(str(e)))
                 lp.goto(learner_base+'/course.html',wait_until='load')
                 learner.set_offline(True)
@@ -131,7 +141,7 @@ def run():
                 static_server.terminate();static_server.wait(timeout=10)
                 # Restart for an arbitrary user-authored course, independent of sample IDs.
                 process=subprocess.Popen(command,cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE);wait_server(base,process)
-                browser=pw.chromium.launch(executable_path=os.environ.get('COURSE_CHROMIUM','/usr/bin/chromium'),headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-background-networking'])
+                browser=pw.chromium.launch(**chromium_options())
                 page=browser.new_page(viewport={'width':1280,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(base,wait_until='networkidle');page.locator('#course-title').fill('自有课程 · 客户支持')
                 page.locator('#course-text').fill('## 服务介绍\n\n客户支持时间为每天8小时。\n\n## 咨询入口\n\n请通过帮助中心联系团队。')
