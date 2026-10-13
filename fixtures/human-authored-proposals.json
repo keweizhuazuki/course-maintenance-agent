@@ -1,0 +1,162 @@
+{
+  "notice": "HUMAN-AUTHORED SYNTHETIC DEMONSTRATION. Not AI output, not evidence of semantic impact detection.",
+  "proposals": [
+    {
+      "target_id": "b-limit",
+      "expected_digest": "fc0b047626cdf5b115fcf193424893ce8e4ba496d2f8eab9813b86ab176443c5",
+      "replacement": {
+        "id": "b-limit",
+        "text": "CSV 导出单个文件上限为 50MB。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "新版容量上限影响课程正文。",
+      "citations": [
+        {
+          "start_line": 4,
+          "end_line": 4,
+          "quote": "CSV 导出单个文件上限调整为 50MB。"
+        }
+      ],
+      "requires_resolution": false
+    },
+    {
+      "target_id": "h-limit",
+      "expected_digest": "bfbec80805e1b4675b6b9d7e880c459bde619cda8f3e18a1f51eabd1de499eda",
+      "replacement": {
+        "id": "h-limit",
+        "text": "文件检查：确认单个 CSV 不超过 50MB。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "速查讲义需要与批准容量一致。",
+      "citations": [
+        {
+          "start_line": 4,
+          "end_line": 4,
+          "quote": "CSV 导出单个文件上限调整为 50MB。"
+        }
+      ],
+      "requires_resolution": false
+    },
+    {
+      "target_id": "q-limit",
+      "expected_digest": "7ba49d7653beed5039818f1ee35498367b812740fafb1890c40cd065c34149f7",
+      "replacement": {
+        "id": "q-limit",
+        "prompt": "单个 CSV 导出文件的大小上限是多少？",
+        "choices": [
+          {
+            "id": "A",
+            "text": "10MB"
+          },
+          {
+            "id": "B",
+            "text": "20MB"
+          },
+          {
+            "id": "C",
+            "text": "50MB"
+          }
+        ],
+        "answer_id": "C",
+        "explanation": "新版产品说明规定单个 CSV 文件上限为 50MB；20MB 仍保留为干扰选项。"
+      },
+      "rationale": "上限改变需要同步答案与解释，保留 10MB 和 20MB 干扰选项。",
+      "citations": [
+        {
+          "start_line": 4,
+          "end_line": 4,
+          "quote": "CSV 导出单个文件上限调整为 50MB。"
+        }
+      ],
+      "requires_resolution": false
+    },
+    {
+      "target_id": "b-retention",
+      "expected_digest": "15107d2848a231c08fdcae6a2cf5ee227f76b418ec4e30634e3cf7a8d3606150",
+      "replacement": {
+        "id": "b-retention",
+        "text": "导出文件保留 14 天，请在期限内保存。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "两份同级资料分别写 14 天和 21 天。这里提出 14 天作为待人工决定的候选值，不能视为来源共识。",
+      "citations": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "quote": "导出文件保留 14 天，之后自动删除。"
+        },
+        {
+          "start_line": 10,
+          "end_line": 10,
+          "quote": "导出文件保留 21 天，之后自动删除。"
+        }
+      ],
+      "requires_resolution": true
+    },
+    {
+      "target_id": "h-retention",
+      "expected_digest": "f7ca6cd872d415722636c393659fc5532189278e19f2969844c517d048f67271",
+      "replacement": {
+        "id": "h-retention",
+        "text": "保存提醒：导出文件保留 14 天。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "讲义保留期同样存在来源冲突，需要人工明确选择和理由。",
+      "citations": [
+        {
+          "start_line": 5,
+          "end_line": 5,
+          "quote": "导出文件保留 14 天，之后自动删除。"
+        },
+        {
+          "start_line": 10,
+          "end_line": 10,
+          "quote": "导出文件保留 21 天，之后自动删除。"
+        }
+      ],
+      "requires_resolution": true
+    },
+    {
+      "target_id": "b-button",
+      "expected_digest": "321c89a411ce9c67ccfdb0a21cf429742a77978de593bc48fd46b8d79a3625ed",
+      "replacement": {
+        "id": "b-button",
+        "text": "在记录页面点击 Download CSV 按钮导出文件。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "产品说明建议修改按钮名称，审核者可因培训版本安排拒绝此项。",
+      "citations": [
+        {
+          "start_line": 6,
+          "end_line": 6,
+          "quote": "导出按钮名称调整为 Download CSV。"
+        }
+      ],
+      "requires_resolution": false
+    },
+    {
+      "target_id": "h-button",
+      "expected_digest": "4c205861e7085ea979806ab4129524d72f8fe2eca68ebdd2f895a1e3bf1aff60",
+      "replacement": {
+        "id": "h-button",
+        "text": "操作入口：Download CSV。",
+        "image": null,
+        "image_alt": null
+      },
+      "rationale": "讲义按钮名称的候选修改。",
+      "citations": [
+        {
+          "start_line": 6,
+          "end_line": 6,
+          "quote": "导出按钮名称调整为 Download CSV。"
+        }
+      ],
+      "requires_resolution": false
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "status": "passed",
+  "synthetic_data": true,
+  "proposal_origin": "human_authored_demo",
+  "live_ai_verified": false,
+  "task_id": "d7321685655645518006c1b0f4ff3d44",
+  "source_hash": "8a7a1609c3c5faaecd9ace62d05fb0c75a131100558678947610c136de64f310",
+  "saved_decisions": {
+    "approved": 5,
+    "rejected": 2,
+    "conflicts_resolved_by_human": 2
+  },
+  "abrupt_exit": {
+    "child_exit_code": 77,
+    "injection": "after first materialized course update",
+    "applied_at_exit": 1,
+    "partial_file_matches_durable_state": true,
+    "active_batch_recovered": "e1d4bd96b8aa40e6b064190dda267213"
+  },
+  "resumed": {
+    "applied_target_count": 5,
+    "course_hash": "f8d514ca5e65eb2fb5dd301dc89dfd1e363239396df025fc03f456a03bbb83a7",
+    "repeat_apply_added_events": 0,
+    "repeat_apply_rewrote_file": false,
+    "preserved_targets": [
+      "b-welcome",
+      "b-access",
+      "b-button",
+      "h-button"
+    ],
+    "unaffected_chapter_hashes": [
+      "a988185f4fa06c5ba9d055f420a05e305555294cfe3cb80ef772bb51f51a2773",
+      "36af4a98ac1331ef2358f3afe17eedfdf2c185b4ef0bb20232c557ec269a2b33"
+    ]
+  },
+  "quiz": {
+    "old_answer": "B",
+    "new_answer": "C",
+    "B_distractor": "20MB",
+    "new_explanation": "新版产品说明规定单个 CSV 文件上限为 50MB；20MB 仍保留为干扰选项。"
+  },
+  "export_interruption": {
+    "injection": "ZIP file written before completion receipt",
+    "completed_exports_before_resume": 0,
+    "completed_exports_after_repeat": 1,
+    "bytes_identical_after_resume": true,
+    "artifact_path": "evidence/beacon-recovered.course.zip",
+    "artifact_sha256": "efe84606d7ca0012706c47e665abfa751cc632d822c4f83d6d1712fd02fbbb50",
+    "fingerprint": "4f6ec11aa423fa6c0ac111a3af397af5679003d54a3dbf7e3e8ee5bd865a3f20"
+  },
+  "source_change": {
+    "change": "50MB to 40MB after approval",
+    "invalidated_unapplied_approvals": 5,
+    "course_unchanged": true,
+    "policy": "conservative whole-reference invalidation"
+  },
+  "external_edit": {
+    "write_blocked": true,
+    "external_content_preserved": true,
+    "related_approval": "stale",
+    "unrelated_approval": "approved"
+  },
+  "rollback": {
+    "restored_course_hash": "1bba4aa316f493d3f59d4067ec49e484cbb29bb9574466ce4f82ec1403fb331b",
+    "matches_original": true
+  },
+  "semantic_limits": "No AI influence identification, factual entailment or model prompt-injection resistance was tested. Evidence covers the deterministic review/write/recovery layer."
+}

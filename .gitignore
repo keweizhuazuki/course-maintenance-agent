@@ -1,0 +1,10 @@
+.local/
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+evidence/browser-profile*/
+evidence/run-data/
+evidence/exports/
+evidence/server.log

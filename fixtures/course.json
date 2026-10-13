@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "id": "beacon-desk-training",
+  "title": "Beacon Desk · 数据导出培训",
+  "language": "zh-CN",
+  "chapters": [
+    {
+      "id": "ch-start",
+      "title": "01 · 开始之前",
+      "blocks": [
+        {
+          "id": "b-welcome",
+          "text": "这份课程帮助团队正确导出 Beacon Desk 中的记录。完成课程后，可在[数据导出](#ch-export)章节复习操作。",
+          "image": "assets/export-guide.png",
+          "image_alt": "Beacon Desk 合成界面：选择记录、导出 CSV、检查文件"
+        }
+      ],
+      "quizzes": []
+    },
+    {
+      "id": "ch-export",
+      "title": "02 · 数据导出",
+      "blocks": [
+        {
+          "id": "b-limit",
+          "text": "CSV 导出单个文件上限为 20MB。",
+          "image": null,
+          "image_alt": null
+        },
+        {
+          "id": "b-retention",
+          "text": "导出文件保留 30 天，请在期限内保存。",
+          "image": null,
+          "image_alt": null
+        },
+        {
+          "id": "b-button",
+          "text": "在记录页面点击 Export data 按钮导出文件。",
+          "image": null,
+          "image_alt": null
+        }
+      ],
+      "quizzes": [
+        {
+          "id": "q-limit",
+          "prompt": "单个 CSV 导出文件的大小上限是多少？",
+          "choices": [
+            {
+              "id": "A",
+              "text": "10MB"
+            },
+            {
+              "id": "B",
+              "text": "20MB"
+            },
+            {
+              "id": "C",
+              "text": "50MB"
+            }
+          ],
+          "answer_id": "B",
+          "explanation": "旧版产品说明规定单个 CSV 文件上限为 20MB。"
+        }
+      ]
+    },
+    {
+      "id": "ch-handout",
+      "title": "03 · 操作速查讲义",
+      "blocks": [
+        {
+          "id": "h-limit",
+          "text": "文件检查：确认单个 CSV 不超过 20MB。",
+          "image": null,
+          "image_alt": null
+        },
+        {
+          "id": "h-retention",
+          "text": "保存提醒：导出文件保留 30 天。",
+          "image": null,
+          "image_alt": null
+        },
+        {
+          "id": "h-button",
+          "text": "操作入口：Export data。",
+          "image": null,
+          "image_alt": null
+        }
+      ],
+      "quizzes": []
+    },
+    {
+      "id": "ch-access",
+      "title": "04 · 访问权限",
+      "blocks": [
+        {
+          "id": "b-access",
+          "text": "员工只能导出自己有访问权限的记录。权限不足时联系管理员，不尝试绕过访问限制。",
+          "image": null,
+          "image_alt": null
+        }
+      ],
+      "quizzes": []
+    }
+  ]
+}
