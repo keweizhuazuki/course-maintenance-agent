@@ -3,6 +3,7 @@
   "scope": "Real browser offline workflow; human-authored proposals; no AI calls",
   "browser_environment": "macOS; Playwright-managed Chromium in isolated headless profiles",
   "checks": [
+    "Damaged course ZIP import returned HTTP 422 and preserved existing runs, course and event history",
     "Trainer approved capacity and quiz, resolved 14/21-day conflict with reasons, rejected both button renames through actual UI",
     "Two simultaneous browser export requests returned byte-identical complete ZIPs",
     "Fresh browser restored decisions, applied five real target updates and downloaded course/handout/change package",

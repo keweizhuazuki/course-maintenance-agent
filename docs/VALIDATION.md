@@ -11,6 +11,8 @@ This record describes executed checks, not a claim that real AI analysis is conn
 | Real quiz scoring | Fresh learner browser selected B=`20MB`: wrong; C=`50MB`: correct; explanation says 50MB | [Learner screenshot](screenshots/04-independent-offline-course.png) |
 | Author-independent delivery | Author server stopped; separate browser process/profile; separate static origin; no external resource requests; images/interaction work after network disabled | [Browser record](../evidence/browser-check.json) |
 | Persisted decisions | A new author browser context reopened all saved decisions before applying | Browser record; unit regression |
+| Corrupt ZIP import | A damaged DEFLATE stream returned HTTP 422; the existing run count, course content and event history remained unchanged | [Regression test](../tests/test_workflow.py), [browser record](../evidence/browser-check.json) |
+| Interrupted initial materialization | After the create transaction committed but before its course file was written, a new service listed the durable run and rematerialized it from SQLite | [Recovery regression](../tests/test_workflow.py) |
 | Abrupt interruption | A child process exited with code 77 after one actual file update; a new service recovered the same batch and completed five updates | Recovery record |
 | Repeated application | No additional applied events and no rewritten course file after successful repeat | Recovery record |
 | Export interruption | ZIP existed before completion receipt; restart produced identical bytes and one completed export | Recovery record |

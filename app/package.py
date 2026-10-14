@@ -3,6 +3,7 @@ import json
 import struct
 import zipfile
 import warnings
+import zlib
 from pathlib import PurePosixPath
 
 from PIL import Image
@@ -105,7 +106,10 @@ def unpack(data):
             allowed = name in {"course.json", "source.md", "course.html", "handout.html", "changes.json", "changes.html"} or name.startswith("assets/")
             if not allowed:
                 raise ValueError("Unsupported package entry: " + name)
-            files[name] = archive.read(entry)
+            try:
+                files[name] = archive.read(entry)
+            except zlib.error as exc:
+                raise ValueError("The course ZIP contains corrupt compressed data") from exc
         if not {"course.json", "source.md"}.issubset(files):
             raise ValueError("The ZIP must contain course.json and source.md")
         course = Course.model_validate(json.loads(files["course.json"])).model_dump()

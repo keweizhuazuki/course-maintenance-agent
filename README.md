@@ -10,7 +10,7 @@ Maintain an existing training course against revised product information. Review
 
 ## What works
 
-- Paste/import your own Markdown or plain-text lesson, add multiple-choice questions and local images through forms. The app creates stable IDs and a reusable `.course.zip`; trainers do not write JSON.
+- Paste/import your own Markdown or plain-text lesson, add multiple-choice questions and local images through forms. The app creates stable IDs and a reusable `.course.zip`; trainers do not write JSON. Corrupt course ZIPs are rejected without changing saved tasks.
 - Reopen saved course packages with revised Markdown. Each revision stores a unified diff and per-proposal citation locator status, including prior and current line ranges.
 - All unapplied proposals become stale on source change. A person may explicitly reconfirm only when the citation is unique, its line mapping and adjacent context remain unchanged, and the course target is unchanged. Conflicts, missing/changed/duplicated citations, changed context and changed targets require full review. Locator checks do not prove semantic support, and reconfirmation never applies course edits automatically.
 - Approve/reject each suggestion, revise suggestions, and record human conflict-resolution reasons. Questions are edited as a whole: distractors are preserved rather than globally replaced.

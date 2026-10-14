@@ -1,9 +1,11 @@
 """Real browser acceptance. All proposals are explicitly human-authored; no AI calls."""
+import base64
 import io
 import json
 import os
 import socket
 import subprocess
+import struct
 import sys
 import tempfile
 import time
@@ -44,6 +46,18 @@ def wait_server(base,process):
     raise RuntimeError('Server readiness timeout')
 
 
+def corrupt_course_zip_base64():
+    data=bytearray((ROOT/'fixtures'/'beacon-old.course.zip').read_bytes())
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        info=archive.getinfo('course.json')
+    if info.compress_type!=zipfile.ZIP_DEFLATED:
+        raise AssertionError('Expected fixture course.json to use DEFLATE')
+    name_size,extra_size=struct.unpack_from('<HH',data,info.header_offset+26)
+    data_start=info.header_offset+30+name_size+extra_size
+    data[data_start:data_start+info.compress_size]=b'\xff'*info.compress_size
+    return base64.b64encode(data).decode()
+
+
 def run():
     checks=[]
     with tempfile.TemporaryDirectory(prefix='course-browser-',dir=EVIDENCE) as work:
@@ -63,6 +77,18 @@ def run():
                 page.get_by_role('button',name='打开合成示例').click()
                 page.get_by_role('button',name='载入人工演示建议').wait_for()
                 run_id=page.url.split('#')[1]
+                import_check=page.evaluate("""async ({runId,archive,source}) => {
+                    const before=await fetch('/api/runs/'+runId).then(response=>response.json());
+                    const beforeIds=(await fetch('/api/runs').then(response=>response.json())).map(run=>run.id);
+                    const response=await fetch('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({course_base64:archive,new_source:source})});
+                    const error=await response.json().catch(()=>({error:'non-JSON failure'}));
+                    const after=await fetch('/api/runs/'+runId).then(response=>response.json());
+                    const afterIds=(await fetch('/api/runs').then(response=>response.json())).map(run=>run.id);
+                    return {status:response.status,error:error.error,sameRunIds:JSON.stringify(beforeIds)===JSON.stringify(afterIds),sameCourse:JSON.stringify(before.current)===JSON.stringify(after.current),sameEvents:JSON.stringify(before.events)===JSON.stringify(after.events)};
+                }""",{'runId':run_id,'archive':corrupt_course_zip_base64(),'source':(ROOT/'fixtures'/'new-product.md').read_text()})
+                assert import_check['status']==422,import_check
+                assert import_check['sameRunIds'] and import_check['sameCourse'] and import_check['sameEvents'],import_check
+                checks.append('Damaged course ZIP import returned HTTP 422 and preserved existing runs, course and event history')
                 page.get_by_role('button',name='载入人工演示建议').click()
                 page.locator('[data-chapter="ch-export"]').click()
                 page.locator('[data-target="b-limit"]').wait_for()

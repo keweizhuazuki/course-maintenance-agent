@@ -337,6 +337,39 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(self.service.get(self.id)['current'],before)
         self.assertEqual(len(self.service.list()),1)
 
+    def test_corrupt_deflate_upload_returns_422_without_changing_saved_run(self):
+        damaged=bytearray(self.archive)
+        with zipfile.ZipFile(io.BytesIO(self.archive)) as archive:
+            info=archive.getinfo('course.json')
+        self.assertEqual(info.compress_type,zipfile.ZIP_DEFLATED)
+        name_size,extra_size=struct.unpack_from('<HH',damaged,info.header_offset+26)
+        data_start=info.header_offset+30+name_size+extra_size
+        damaged[data_start:data_start+info.compress_size]=b'\xff'*info.compress_size
+        before=self.service.get(self.id)
+        app=create_app(self.tmp.name,live_allowed=False)
+        with TestClient(app) as client:
+            response=client.post('/api/runs',json={'course_base64':base64.b64encode(damaged).decode(),'new_source':self.source.decode()})
+            self.assertEqual(response.status_code,422,response.text)
+            self.assertIn('corrupt compressed data',response.json()['error'])
+            self.assertEqual([run['id'] for run in client.get('/api/runs').json()],[self.id])
+            after=client.get('/api/runs/'+self.id).json()
+        self.assertEqual(after['current'],before['current'])
+        self.assertEqual(after['events'],before['events'])
+
+    def test_create_recovers_after_commit_before_initial_materialization(self):
+        with tempfile.TemporaryDirectory() as root:
+            service=Service(root)
+            with patch.object(service,'materialize',side_effect=InjectedInterruption('after durable create commit')):
+                with self.assertRaises(InjectedInterruption):service.create(self.archive,b'New persisted source.\n')
+            restarted=Service(root)
+            runs=restarted.list()
+            self.assertEqual(len(runs),1)
+            resumed=restarted.get(runs[0]['id'])
+            self.assertEqual(resumed['source'],'New persisted source.\n')
+            self.assertEqual(resumed['current'],resumed['original'])
+            self.assertEqual([event['type'] for event in resumed['events']],['imported'])
+            self.assertTrue((Path(root)/'runs'/resumed['id']/'course.json').is_file())
+
     def test_broken_internal_link_blocks_validated_export(self):
         archive,course=create_course({'title':'Links','text':'See [missing](#no-such-chapter).','quizzes':[]})
         s=self.service.create(archive,b'Source text')
