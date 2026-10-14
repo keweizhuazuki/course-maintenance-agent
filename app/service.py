@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from .models import Block, Course, DraftRequest, Quiz, citation_errors, digest, targets
 from .package import read_markdown, unpack
+from .revalidation import create_source_review
 from .store import Store, encoded
 
 
@@ -176,9 +177,58 @@ class Service:
             new_hash=digest(source.encode())
             if new_hash==row["source_hash"]: return {"id":run_id,"unchanged":True}
             if row["active_batch"]: raise Problem("Finish or roll back the current batch before changing source")
+            proposals=[]
+            for stored in db.execute("SELECT * FROM proposals WHERE run_id=? AND status IN ('approved','pending','blocked','stale')",(run_id,)):
+                proposal=dict(stored)
+                proposal["body"]=json.loads(proposal["body"])
+                proposal["errors"]=json.loads(proposal["errors"])
+                proposals.append(proposal)
+            review=create_source_review(row["source"],source,proposals,targets(json.loads(row["current"])),row["source_hash"],new_hash)
             db.execute("UPDATE proposals SET status='stale' WHERE run_id=? AND status IN ('approved','pending','blocked')",(run_id,))
             db.execute("UPDATE runs SET source=?,source_hash=?,revision=revision+1 WHERE id=?",(source,new_hash,run_id))
-            self.store.event(db,run_id,"source_changed",{"before_hash":row["source_hash"],"after_hash":new_hash,"approval_policy":"Conservatively invalidate all unapplied proposals; no chapter is automatically rewritten"})
+            review["approval_policy"]="All unapplied proposals remain stale until explicitly reconfirmed or replaced; citations marked for full review cannot be quick-reconfirmed."
+            self.store.event(db,run_id,"source_changed",review)
+        return self.get(run_id)
+
+    def reconfirm_proposal(self, run_id, proposal_id):
+        self.materialize(run_id)
+        with self.store.transaction() as db:
+            row=self._row(db,run_id)
+            proposal=db.execute("SELECT * FROM proposals WHERE id=? AND run_id=?",(proposal_id,run_id)).fetchone()
+            if not proposal: raise Problem("Proposal not found",404)
+            event=db.execute("SELECT details FROM events WHERE run_id=? AND type='source_changed' ORDER BY seq DESC LIMIT 1",(run_id,)).fetchone()
+            if not event: raise Problem("No source revision is awaiting revalidation")
+            review=json.loads(event["details"])
+            if review.get("after_hash")!=row["source_hash"]:
+                raise Problem("Source changed again. Review the latest source diff.")
+            check=review.get("proposal_reviews",{}).get(proposal_id)
+            if not check: raise Problem("This proposal has no revalidation record. Create a new proposal.")
+            if proposal["source_hash"]==row["source_hash"] and proposal["status"]==check["from_status"]:
+                return self.get_without_write(db,run_id)
+            if proposal["status"]!="stale" or proposal["source_hash"]!=review.get("before_hash"):
+                raise Problem("Proposal is no longer eligible for this source revision.")
+            if not check.get("quick_reconfirm"):
+                raise Problem("This proposal needs full review; create a new proposal or reject it.")
+            body=json.loads(proposal["body"])
+            current_targets=targets(json.loads(row["current"]))
+            target=current_targets.get(proposal["target_id"])
+            if not target or target["digest"]!=body["expected_digest"]:
+                raise Problem("Target changed; prepare and review a new proposal.")
+            locations=check["citations"]
+            if len(locations)!=len(body["citations"]) or any(location.get("status") not in {"unchanged","moved"} or "new_range" not in location for location in locations):
+                raise Problem("Citation location is not stable; complete a full review.")
+            for citation,location in zip(body["citations"],locations):
+                citation["start_line"]=location["new_range"]["start_line"]
+                citation["end_line"]=location["new_range"]["end_line"]
+            if citation_errors(body["citations"],row["source"]):
+                raise Problem("Citation no longer matches the current source; complete a full review.")
+            next_status=check["from_status"]
+            if next_status=="approved":
+                competing=db.execute("SELECT id FROM proposals WHERE run_id=? AND target_id=? AND status='approved' AND id!=?",(run_id,proposal["target_id"],proposal_id)).fetchone()
+                if competing: raise Problem("Another proposal for this item is already approved. Resolve it before reconfirming.")
+            db.execute("UPDATE proposals SET body=?,source_hash=?,status=? WHERE id=?",(encoded(body),row["source_hash"],next_status,proposal_id))
+            db.execute("UPDATE runs SET revision=revision+1 WHERE id=?",(run_id,))
+            self.store.event(db,run_id,"proposal_reconfirmed",{"proposal_id":proposal_id,"source_hash":row["source_hash"],"status":next_status,"human_action":"Explicit reconfirmation after the source diff was displayed; locator status is not semantic verification."})
         return self.get(run_id)
 
     def apply(self, run_id, fault=None):

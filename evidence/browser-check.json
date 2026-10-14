@@ -1,23 +1,31 @@
 {
   "status": "passed",
   "scope": "Real browser offline workflow; human-authored proposals; no AI calls",
+  "browser_environment": "macOS; Playwright-managed Chromium in isolated headless profiles",
   "checks": [
     "Trainer approved capacity and quiz, resolved 14/21-day conflict with reasons, rejected both button renames through actual UI",
     "Fresh browser restored decisions, applied five real target updates and downloaded course/handout/change package",
     "Author server stopped; separate browser process/profile loaded the export from an independent local static origin, then went offline; embedded image and every internal link worked; B scored wrong and C scored correct",
     "Standalone handout contains approved 50MB/14-day text and explicitly retained Export data; change report records rejected suggestions and human conflict reasons",
-    "A trainer created a separate personal text/Markdown course with a quiz and uploaded image, without writing IDs or JSON, and manually reviewed/applied an independently sourced update; saving an unchanged revision preserved its pending approval"
+    "A trainer created a separate Markdown course with a quiz and uploaded image through forms, without manual IDs or JSON",
+    "Changed citation was blocked from quick re-confirmation; unchanged unique citation retained a disabled explicit-confirm action; the diff and both locator states survived a full page refresh; export returned HTTP 409 while proposals were stale",
+    "The full review rejection remained visible; explicit reconfirmation preserved approval after reload but did not edit the course until Apply; course.json, source, image, quiz, course HTML, print handout and change report were exported and checked"
   ],
   "browser_errors": [],
   "external_learner_requests": 0,
   "delivery_limitation": "Managed browser blocks file://. Direct double-click opening was not verified. Independent static-origin delivery was verified; no browser policy was overridden.",
   "artifact": "evidence/beacon-maintained.course.zip",
+  "artifacts": [
+    "evidence/beacon-maintained.course.zip",
+    "evidence/customer-support-maintained.course.zip"
+  ],
   "screenshots": [
     "docs/screenshots/01-import-own-course.png",
     "docs/screenshots/02-source-review.png",
     "docs/screenshots/03-applied-course.png",
     "docs/screenshots/04-independent-offline-course.png",
-    "docs/screenshots/05-offline-handout.png"
+    "docs/screenshots/05-offline-handout.png",
+    "docs/screenshots/06-source-revalidation.png"
   ],
   "live_ai_verified": false
 }

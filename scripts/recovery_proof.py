@@ -59,6 +59,14 @@ def run():
         changed=service.update_source(changed['id'],changed['source'].replace('50MB','40MB').encode())
         assert len([p for p in changed['proposals'] if p['status']=='stale'])==5
         assert digest(changed['current'])==changed_before
+        change_event=next(e for e in changed['events'] if e['type']=='source_changed')
+        limit=next(p for p in changed['proposals'] if p['target_id']=='b-limit')
+        locator=change_event['details']['proposal_reviews'][limit['id']]
+        assert locator['citation_status']=='removed' and not locator['quick_reconfirm']
+        service=Service(root)
+        changed=service.get(changed['id'])
+        persisted_change=next(e['details'] for e in changed['events'] if e['type']=='source_changed')
+        assert persisted_change['diff']==change_event['details']['diff']
         # A genuine external write must survive the attempted application.
         external=prepared(service);outside=json.loads(json.dumps(external['current']));outside['chapters'][1]['blocks'][0]['text']='外部培训人员新增的内容，不得覆盖。'
         external_path=root/'runs'/external['id']/'course.json';external_path.write_text(json.dumps(outside,ensure_ascii=False))
@@ -78,7 +86,7 @@ def run():
             'resumed':{'applied_target_count':5,'course_hash':digest(complete['current']),'repeat_apply_added_events':len(repeated['events'])-before_repeat,'repeat_apply_rewrote_file':False,'preserved_targets':preserved,'unaffected_chapter_hashes':[digest(initial['chapters'][i]) for i in (0,3)]},
             'quiz':{'old_answer':'B','new_answer':new['q-limit']['value']['answer_id'],'B_distractor':new['q-limit']['value']['choices'][1]['text'],'new_explanation':new['q-limit']['value']['explanation']},
             'export_interruption':{'injection':'ZIP file written before completion receipt','completed_exports_before_resume':exports_before,'completed_exports_after_repeat':exports_after,'bytes_identical_after_resume':True,'artifact_path':'evidence/beacon-recovered.course.zip','artifact_sha256':hashlib.sha256(data).hexdigest(),'fingerprint':fingerprint},
-            'source_change':{'change':'50MB to 40MB after approval','invalidated_unapplied_approvals':5,'course_unchanged':True,'policy':'conservative whole-reference invalidation'},
+            'source_change':{'change':'50MB to 40MB after approval','invalidated_unapplied_approvals':5,'course_unchanged':True,'diff_persisted_after_service_restart':True,'changed_citation_requires_full_review':True,'policy':'conservative staleness followed by explicit per-proposal review'},
             'external_edit':{'write_blocked':True,'external_content_preserved':True,'related_approval':external_status['b-limit'],'unrelated_approval':external_status['q-limit']},
             'rollback':{'restored_course_hash':digest(rolled['current']),'matches_original':rolled['current']==initial},
             'semantic_limits':'No AI influence identification, factual entailment or model prompt-injection resistance was tested. Evidence covers the deterministic review/write/recovery layer.'

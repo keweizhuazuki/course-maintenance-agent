@@ -92,6 +92,10 @@ def create_app(data_root=None,live_allowed=None):
         body=await request.json()
         return service.update_source(run_id,body.get("text","").encode())
 
+    @app.post("/api/runs/{run_id}/proposals/{proposal_id}/reconfirm")
+    def reconfirm(run_id:str,proposal_id:str):
+        return service.reconfirm_proposal(run_id,proposal_id)
+
     @app.post("/api/runs/{run_id}/apply")
     def apply(run_id:str): return service.apply(run_id)
 

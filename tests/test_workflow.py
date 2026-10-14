@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import io
 import json
 import os
@@ -113,6 +114,83 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(again['revision'],before['revision'])
         path=Path(self.tmp.name)/'runs'/self.id/'course.json';mtime=path.stat().st_mtime_ns
         self.service.get(self.id);self.assertEqual(path.stat().st_mtime_ns,mtime)
+
+    def test_source_revision_reconfirms_only_after_review_and_never_auto_applies(self):
+        created=self.drafts()
+        proposal=next(p for p in created['proposals'] if p['target_id']=='b-limit')
+        self.service.decide(self.id,proposal['id'],'approved','已核对容量更新，待应用')
+        before=self.service.get(self.id)
+        revised_source='版本说明\n\n'.encode()+self.source
+
+        updated=self.service.update_source(self.id,revised_source)
+        self.assertEqual(updated['current'],before['current'])
+        self.assertEqual(sum(p['status']=='stale' for p in updated['proposals']),7)
+        review=next(e['details'] for e in updated['events'] if e['type']=='source_changed')
+        check=review['proposal_reviews'][proposal['id']]
+        self.assertEqual(check['citation_status'],'moved')
+        self.assertTrue(check['quick_reconfirm'])
+        self.assertEqual(check['citations'][0]['new_range']['start_line'],6)
+        self.assertTrue(review['diff'])
+        with self.assertRaises(Problem):
+            self.service.export(self.id)
+
+        self.service=Service(self.tmp.name)
+        restored=self.service.get(self.id)
+        persisted=next(e['details'] for e in restored['events'] if e['type']=='source_changed')
+        self.assertEqual(persisted['diff'],review['diff'])
+        confirmed=self.service.reconfirm_proposal(self.id,proposal['id'])
+        reconfirmed=next(p for p in confirmed['proposals'] if p['id']==proposal['id'])
+        self.assertEqual(reconfirmed['status'],'approved')
+        self.assertEqual(reconfirmed['source_hash'],confirmed['source_hash'])
+        self.assertEqual(reconfirmed['body']['citations'][0]['start_line'],6)
+        self.assertEqual(confirmed['current'],before['current'])
+        self.assertEqual(len([e for e in confirmed['events'] if e['type']=='proposal_reconfirmed']),1)
+
+        revision=confirmed['revision']
+        self.service.reconfirm_proposal(self.id,proposal['id'])
+        again=self.service.get(self.id)
+        self.assertEqual(again['revision'],revision)
+        self.assertEqual(len([e for e in again['events'] if e['type']=='proposal_reconfirmed']),1)
+
+        self.service.apply(self.id)
+        applied=self.service.get(self.id)
+        self.assertEqual(next(p for p in applied['proposals'] if p['id']==proposal['id'])['status'],'applied')
+        self.assertIn('50MB',targets(applied['current'])['b-limit']['value']['text'])
+        self.assertEqual(sum(p['status']=='stale' for p in applied['proposals']),6)
+        with self.assertRaises(Problem):
+            self.service.export(self.id)
+
+    def test_api_source_reconfirm_route_preserves_approval_until_apply(self):
+        with TestClient(create_app(Path(self.tmp.name)/'api',live_allowed=False)) as client:
+            created=client.post('/api/runs',json={'course_base64':base64.b64encode(self.archive).decode(),'new_source':self.source.decode()})
+            self.assertEqual(created.status_code,200,created.text)
+            state=created.json()
+            proposal=next(p for p in json.loads((FIXTURES/'human-authored-proposals.json').read_text())['proposals'] if p['target_id']=='b-limit')
+            drafts=client.post('/api/runs/'+state['id']+'/proposals',json={'expected_revision':state['revision'],'source_hash':state['source_hash'],'proposals':[proposal]})
+            self.assertEqual(drafts.status_code,200,drafts.text)
+            pid=drafts.json()['proposals'][0]['id']
+            approved=client.post('/api/runs/'+state['id']+'/decisions/'+pid,json={'decision':'approved','reason':'已复核新版'})
+            self.assertEqual(approved.status_code,200,approved.text)
+            updated=client.post('/api/runs/'+state['id']+'/source',json={'text':'版本说明\n\n'+self.source.decode()})
+            self.assertEqual(updated.status_code,200,updated.text)
+            self.assertEqual(next(p for p in updated.json()['proposals'] if p['id']==pid)['status'],'stale')
+            self.assertEqual(client.get('/api/runs/'+state['id']+'/export').status_code,409)
+
+            reconfirm=client.post('/api/runs/'+state['id']+'/proposals/'+pid+'/reconfirm')
+            self.assertEqual(reconfirm.status_code,200,reconfirm.text)
+            state_after=reconfirm.json()
+            p=next(p for p in state_after['proposals'] if p['id']==pid)
+            self.assertEqual(p['status'],'approved')
+            self.assertEqual(p['body']['citations'][0]['start_line'],6)
+            self.assertEqual(state_after['current'],state['current'])
+            self.assertEqual(client.get('/api/runs/'+state['id']+'/export').status_code,409)
+
+            applied=client.post('/api/runs/'+state['id']+'/apply')
+            self.assertEqual(applied.status_code,200,applied.text)
+            final=applied.json()
+            self.assertEqual(next(p for p in final['proposals'] if p['id']==pid)['status'],'applied')
+            self.assertIn('50MB',targets(final['current'])['b-limit']['value']['text'])
+            self.assertEqual(client.get('/api/runs/'+state['id']+'/export').status_code,200)
 
     def test_source_change_invalidates_approval_without_rewriting_course(self):
         before=self.decide_all()
