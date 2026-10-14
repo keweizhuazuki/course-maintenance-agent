@@ -14,7 +14,7 @@ Maintain an existing training course against revised product information. Review
 - Reopen saved course packages with revised Markdown. Each revision stores a unified diff and per-proposal citation locator status, including prior and current line ranges.
 - All unapplied proposals become stale on source change. A person may explicitly reconfirm only when the citation is unique, its line mapping and adjacent context remain unchanged, and the course target is unchanged. Conflicts, missing/changed/duplicated citations, changed context and changed targets require full review. Locator checks do not prove semantic support, and reconfirmation never applies course edits automatically.
 - Approve/reject each suggestion, revise suggestions, and record human conflict-resolution reasons. Questions are edited as a whole: distractors are preserved rather than globally replaced.
-- Apply approved changes to durable SQLite state and an actual `course.json`. Restart, retry, and roll back the latest batch without reapplying completed edits.
+- Apply approved changes to durable SQLite state and an actual `course.json`. Restart, retry, and roll back the latest batch without reapplying completed edits; overlapping identical exports return the same complete package.
 - Export `course.html`, `handout.html`, `course.json`, source material, local media and readable/machine-readable change records. Rejected changes remain explicitly disclosed; the package never claims all content matches the new source.
 - A real OpenAI-compatible proposal adapter is implemented, disabled by default, with memory-only configuration, no credential discovery, no automatic paid retries, and mandatory human review.
 

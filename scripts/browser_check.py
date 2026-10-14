@@ -90,6 +90,17 @@ def run():
                 page.locator('[data-chapter="ch-export"]').click()
                 page.locator('[data-target="q-limit"] .badge').filter(has_text='已应用').wait_for()
                 page.screenshot(path=str(SHOTS/'03-applied-course.png'),full_page=True)
+                parallel_export=page.evaluate("""async () => {
+                    const url='/api/runs/'+location.hash.slice(1)+'/export';
+                    const responses=await Promise.all([fetch(url),fetch(url)]);
+                    const status=responses.map(response=>response.status);
+                    const buffers=await Promise.all(responses.map(response=>response.arrayBuffer()));
+                    const left=new Uint8Array(buffers[0]),right=new Uint8Array(buffers[1]);
+                    return {status,lengths:[left.length,right.length],identical:left.length===right.length&&left.every((byte,index)=>byte===right[index])};
+                }""")
+                assert parallel_export['status']==[200,200],parallel_export
+                assert parallel_export['lengths'][0]>1000 and parallel_export['identical'],parallel_export
+                checks.append('Two simultaneous browser export requests returned byte-identical complete ZIPs')
                 with page.expect_download() as download:
                     page.get_by_role('button',name='下载课程与讲义').click()
                 artifact=EVIDENCE/'beacon-maintained.course.zip';download.value.save_as(artifact)

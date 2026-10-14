@@ -3,7 +3,7 @@
   "synthetic_data": true,
   "proposal_origin": "human_authored_demo",
   "live_ai_verified": false,
-  "task_id": "ef29f529770a4b1aada7499949b99a08",
+  "task_id": "b57e5a43feff451a9222a60baf793673",
   "source_hash": "8a7a1609c3c5faaecd9ace62d05fb0c75a131100558678947610c136de64f310",
   "saved_decisions": {
     "approved": 5,
@@ -15,7 +15,7 @@
     "injection": "after first materialized course update",
     "applied_at_exit": 1,
     "partial_file_matches_durable_state": true,
-    "active_batch_recovered": "73e77499b99e4c56bcc7c58978c60789"
+    "active_batch_recovered": "076a3cb8405d4072b7c40ad5af6c004b"
   },
   "resumed": {
     "applied_target_count": 5,
@@ -45,8 +45,8 @@
     "completed_exports_after_repeat": 1,
     "bytes_identical_after_resume": true,
     "artifact_path": "evidence/beacon-recovered.course.zip",
-    "artifact_sha256": "c4d6f490e9cd296482fbbb17ae5ab337cdbfc9814bd3241aa4556f0f4f0239fd",
-    "fingerprint": "4ef775ef3b93e5c52aeee5f490440cbbc7cd5c8ea481001237ab77afeb904d95"
+    "artifact_sha256": "1d61446899377dcecfec8e62cff0460cb999dea3e1ee0e71ccf1ed78c1436e3f",
+    "fingerprint": "b427f52dbff348e46d9f861060d7bc93e92defcef7bfb42a15ca4ae5598ac72d"
   },
   "source_change": {
     "change": "50MB to 40MB after approval",

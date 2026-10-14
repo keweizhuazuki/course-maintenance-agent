@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import base64
 import io
 import json
@@ -7,6 +8,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+from threading import Barrier
 import unittest
 import zipfile
 from copy import deepcopy
@@ -232,6 +234,30 @@ class WorkflowTests(unittest.TestCase):
             result=self.service.add_drafts(self.id,{'expected_revision':s['revision'],'source_hash':s['source_hash'],'proposals':[body]})
             p=result['proposals'][-1];self.assertEqual(p['status'],'blocked')
             with self.assertRaises(Problem): self.service.decide(self.id,p['id'],'approved')
+
+    def test_concurrent_identical_exports_publish_one_complete_package(self):
+        self.decide_all();self.service.apply(self.id)
+        publish_barrier=Barrier(2)
+        real_replace=os.replace
+        def synchronized_replace(source,destination):
+            if str(source).endswith('.tmp') and str(destination).endswith('.course.zip'):
+                publish_barrier.wait(timeout=10)
+            return real_replace(source,destination)
+
+        with patch('app.service.os.replace',side_effect=synchronized_replace):
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                first=pool.submit(self.service.export,self.id)
+                second=pool.submit(self.service.export,self.id)
+                results=[first.result(timeout=15),second.result(timeout=15)]
+
+        self.assertEqual(results[0],results[1])
+        data,fingerprint=results[0]
+        self.assertTrue(zipfile.is_zipfile(io.BytesIO(data)))
+        package_path=Path(self.tmp.name)/'runs'/self.id/(fingerprint+'.course.zip')
+        self.assertEqual(package_path.read_bytes(),data)
+        with self.service.store.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM exports WHERE fingerprint=?',(fingerprint,)).fetchone()[0],1)
+            self.assertEqual(db.execute("SELECT count(*) FROM events WHERE run_id=? AND type='exported'",(self.id,)).fetchone()[0],1)
 
     def test_export_crash_does_not_complete_a_mixed_or_duplicate_package(self):
         self.decide_all();self.service.apply(self.id)

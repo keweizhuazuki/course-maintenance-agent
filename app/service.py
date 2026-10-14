@@ -309,9 +309,13 @@ class Service:
         data=build_package(state,assets,fingerprint)
         folder=self.store.root / "runs" / run_id
         path=folder / (fingerprint+".course.zip")
-        temp=path.with_suffix(".tmp")
-        temp.write_bytes(data)
-        os.replace(temp,path)
+        temp=folder / ("."+fingerprint+"."+uuid.uuid4().hex+".tmp")
+        try:
+            temp.write_bytes(data)
+            os.replace(temp,path)
+        finally:
+            try: temp.unlink()
+            except FileNotFoundError: pass
         if fault=="after_export_file": raise InjectedInterruption("export_file_before_receipt")
         with self.store.transaction() as db:
             current=self._row(db,run_id)

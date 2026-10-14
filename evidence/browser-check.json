@@ -4,6 +4,7 @@
   "browser_environment": "macOS; Playwright-managed Chromium in isolated headless profiles",
   "checks": [
     "Trainer approved capacity and quiz, resolved 14/21-day conflict with reasons, rejected both button renames through actual UI",
+    "Two simultaneous browser export requests returned byte-identical complete ZIPs",
     "Fresh browser restored decisions, applied five real target updates and downloaded course/handout/change package",
     "Author server stopped; separate browser process/profile loaded the export from an independent local static origin, then went offline; embedded image and every internal link worked; B scored wrong and C scored correct",
     "Standalone handout contains approved 50MB/14-day text and explicitly retained Export data; change report records rejected suggestions and human conflict reasons",
